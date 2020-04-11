@@ -6,12 +6,15 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "datablock.h"
+#include "TransportObjects.h"
 
 #include <QMessageBox>
 #include <QTimer>
 
-DIYV::MainWindow::MainWindow(QWidget *parent)
+namespace DIYV
+{
+
+MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
@@ -20,13 +23,18 @@ DIYV::MainWindow::MainWindow(QWidget *parent)
     QTimer::singleShot(0, this, SLOT(showDisclaimer()));
 }
 
-DIYV::MainWindow::~MainWindow()
+MainWindow::~MainWindow()
 {
     _renderer.reset();
     delete ui;
 }
 
-void DIYV::MainWindow::appendNewMeasurements(const PressureMeasurements &values)
+void MainWindow::setOperationalModeFn(std::function<void(OperationalModes)> fn)
+{
+    _operationalModeFn = fn;
+}
+
+void MainWindow::appendNewMeasurements(const PressureMeasurements &values)
 {
     if (ui->_startStop->isChecked())
     {
@@ -35,12 +43,11 @@ void DIYV::MainWindow::appendNewMeasurements(const PressureMeasurements &values)
 }
 
 
-void DIYV::MainWindow::init()
+void MainWindow::init()
 {
     connect(ui->_startStop, SIGNAL(clicked(bool)), this, SLOT(startStopPressed(bool)));
     connect(ui->_screenLocked, SIGNAL(clicked(bool)), this, SLOT(lockedPressed(bool)));
-    connect(&_serialInterface, SIGNAL(newMeasurementsArrived(const PressureMeasurements&)),
-            this, SLOT(appendNewMeasurements(const PressureMeasurements&)));
+
     ui->_therapyMode->insertItem(0, tr("PCV"));
     ui->_screenLocked->setChecked(false);
     ui->_startStop->setChecked(false);
@@ -55,7 +62,7 @@ void DIYV::MainWindow::init()
     lockedPressed(false);
 }
 
-void DIYV::MainWindow::showDisclaimer()
+void MainWindow::showDisclaimer()
 {
     QMessageBox messageBox(QMessageBox::Warning, "Disclaimer",
                            tr("This is not a medical device and\nit must not be used in a clinical environment.\nDo you accept?"),
@@ -70,7 +77,7 @@ void DIYV::MainWindow::showDisclaimer()
     }
 }
 
-void DIYV::MainWindow::startStopPressed(bool value)
+void MainWindow::startStopPressed(bool value)
 {
     ui->_startStop->setText(value? tr("Stop") : tr("Start"));
     ControllerBlock command;
@@ -79,19 +86,10 @@ void DIYV::MainWindow::startStopPressed(bool value)
     command.peep = ui->_maxPressure->value();
     command.irRatio = ui->_irRatio->value();
     command.frequency = ui->_frequency->value();
-    _serialInterface.sendToController(command);
-    if (value)
-    {
-        _serialInterface.start();
-        _renderer->start();
-    }
-    else
-    {
-        _serialInterface.stop();
-    }
+    if (_operationalModeFn) _operationalModeFn(value? OperationalModes::Start : OperationalModes::Stop);
 }
 
-void DIYV::MainWindow::lockedPressed(bool locked)
+void MainWindow::lockedPressed(bool locked)
 {
     ui->_screenLocked->setText(locked? tr("Unlock") : tr("Lock"));
     ui->_therapyMode->setEnabled(!locked);
@@ -102,3 +100,4 @@ void DIYV::MainWindow::lockedPressed(bool locked)
 }
 
 
+}

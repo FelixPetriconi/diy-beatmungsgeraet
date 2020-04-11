@@ -5,13 +5,23 @@
 ********************************************************************************************/
 
 #include "mainwindow.h"
+#include "VentilatorController.h"
 
 #include <QApplication>
+
+using namespace DIYV;
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    DIYV::MainWindow w;
+
+    VentilatorController controller;
+    controller.setTestMode(true);
+    MainWindow w;
+
+    w.setOperationalModeFn([&controller](OperationalModes mode) { controller.setOperationalMode(mode); });
+    controller.setNewMeasurementsAvailable([&w](const PressureMeasurements& val) { w.appendNewMeasurements(val); });
+
     w.show();
     return a.exec();
 }

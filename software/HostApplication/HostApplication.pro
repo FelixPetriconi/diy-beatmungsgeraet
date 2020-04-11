@@ -2,7 +2,7 @@ QT       += core gui serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++14
+CONFIG += c++17
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -16,19 +16,24 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    datablock.cpp \
-    graphrenderer.cpp \
+    GraphRenderer.cpp \
+    SerialInterfaceAdapter.cpp \
+    TestInterfaceAdapter.cpp \
+    TransportObjects.cpp \
+    VentilatorController.cpp \
     main.cpp \
-    mainwindow.cpp \
-    serialinterface.cpp
+    mainwindow.cpp
 
 HEADERS += \
+    GraphRenderer.h \
+    Modes.h \
     PressureMeasurement.h \
+    SerialInterfaceAdapter.h \
     TemplateHelpers.h \
-    datablock.h \
-    graphrenderer.h \
-    mainwindow.h \
-    serialinterface.h
+    TestInterfaceAdapter.h \
+    TransportObjects.h \
+    VentilatorController.h \
+    mainwindow.h
 
 FORMS += \
     mainwindow.ui
